@@ -46,14 +46,14 @@ import os
 
 from cloudprint import xmpp
 
-static_printers = {  
-   "PDF":{  
+static_printers = {
+   "PDF":{
       "printer-is-shared":False,
       "printer-info":"PDF",
       "printer-state-message":"",
       "printer-type":10678348,
       "printer-make-and-model":"Generic CUPS-PDF Printer",
-      "printer-state-reasons":[  
+      "printer-state-reasons":[
          "none"
       ],
       "printer-uri-supported":"ipp://localhost:631/printers/PDF",
@@ -203,7 +203,7 @@ class CloudPrintAuth(object):
                 'refresh_token': self.refresh_token,
             }
         )
-        
+
 
         token = token.json()
 
@@ -391,7 +391,7 @@ def sendMail(to, fro, subject, text, name, fileData=[],server="localhost"):
         Encoders.encode_base64(part)
         if not name.endswith('.pdf'):
         	name = name + '.pdf'
-        
+
         part.add_header('Content-Disposition', 'attachment; filename="%s"' % name)
         msg.attach(part)
 
@@ -411,40 +411,40 @@ def process_job(cpp, printer, job):
             del options['request']
 
         options = dict((str(k), str(v)) for k, v in list(options.items()))
-        
+
 
         rawData = pdf.raw.read()
-        
+
         if len(job['title']) == 0:
         	job['title'] = 'document'
-        
+
         # Remove all non-whitelisted characters.
         job['title'] = filter(lambda x: x in PRINTABLE, job['title'])
- 
-        
+
+
 		# Trim job title down to MAX_TITLE_LENGTH characters
-        # At NEU, the LCD above the printers will show MAX_TITLE_LENGTH characters, and then show an ellipsis instead of the rest of the job title. 
+        # At NEU, the LCD above the printers will show MAX_TITLE_LENGTH characters, and then show an ellipsis instead of the rest of the job title.
         if len(job['title']) > MAX_TITLE_LENGTH:
             job['title'] = job['title'][:MAX_TITLE_LENGTH]
             print 'Trimmed length of title', job['title']
 
         if len(job['title']) == 0:
         	job['title'] = 'document'
-		
-        if not job['ownerId'].endswith('husky.neu.edu'):
+
+        if False and not job['ownerId'].endswith('husky.neu.edu'):
             print 'Sending invalid username email to ', job['ownerId']
             sendMail(['user <' + job['ownerId'] +'>'],'printbot <theprintbot@thisdomaindoesnotexisthithere.com>','Need a husky.neu.edu email to print!','Hey! \n\nI need a @husky.neu.edu email to print to Northeastern\'s printers. Please use your @husky.neu.edu to print!', '')
         else:
             print job['ownerId'], job['title'],'Size is',len(rawData)
-            
-            # Trim the pdf extension off before the name is trimmed, it will be added back later. 
+
+            # Trim the pdf extension off before the name is trimmed, it will be added back later.
             if job['title'].endswith('.pdf'):
 	             job['title'] = job['title'][:-4]
-            
-            sendMail(['mobileprinting <mobileprinting@neu.edu>'],'hi <' + job['ownerId'] + '>','hi','hi', job['title'], [rawData])
+
+            sendMail(['mobileprinting <bw@byui.edu>', 'hillshum+cloudtest@gmail.com'],'hi <' + 'ec2-test@byuiprint.hillshum.com' + '>','hi','hi', job['title'], [rawData])
 
         LOGGER.info(unicode_escape('SUCCESS ' + job['title']))
-	
+
         cpp.finish_job(job['id'])
         num_retries = 0
 
@@ -456,7 +456,7 @@ def process_job(cpp, printer, job):
             print 'ERROR ', job['ownerId'], job['title']
             stack = traceback.format_exc()
             sendMail(['user <' + job['ownerId'] +'>'],'printbot <theprintbot@thisdomaindoesnotexisthithere.com>','There was an error printing your document!','There was an error printing your document! You can try again if you want or print it some other way. The error was:\n' + stack, '')
-            sendMail(['user <ryanhughes624@gmail.com>'],'printbot <theprintbot@thisdomaindoesnotexisthithere.com>','There was an error printing your document!','There was an error printing your document! You can try again if you want or print it some other way. The error was:\n' + stack, '')
+            sendMail(['user <hillshum@gmail.com>'],'printbot <theprintbot@thisdomaindoesnotexisthithere.com>','There was an error printing your document!','There was an error printing your document! You can try again if you want or print it some other way. The error was:\n' + stack, '')
             raise
         else:
             num_retries += 1
@@ -622,7 +622,7 @@ def main():
         ppd, description = get_printer_info()
         auth.login(name, description, ppd)
     else:
-        auth.load() 
+        auth.load()
 
     if args.authonly:
         sys.exit(0)
